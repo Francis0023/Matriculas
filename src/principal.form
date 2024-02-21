@@ -77,23 +77,8 @@
           <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <labelFor value="8168b"/>
           <text value="Curso"/>
-        </properties>
-      </component>
-      <component id="7fa9b" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Fecha- Ingreso"/>
-        </properties>
-      </component>
-      <component id="391fc" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Foto-Carnet"/>
         </properties>
       </component>
       <component id="bdfb4" class="javax.swing.JTextField" binding="txtNombre">
@@ -133,30 +118,6 @@
       <component id="9862d" class="javax.swing.JTextField" binding="txtEdad">
         <constraints>
           <grid row="7" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="5c728" class="javax.swing.JTextField" binding="txtCurso">
-        <constraints>
-          <grid row="8" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="72eba" class="javax.swing.JTextField" binding="txtIngreso">
-        <constraints>
-          <grid row="9" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="c11d1" class="javax.swing.JTextField" binding="TFoto">
-        <constraints>
-          <grid row="10" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
@@ -250,11 +211,21 @@
       </hspacer>
       <component id="816a0" class="javax.swing.JLabel" binding="imagenLabel">
         <constraints>
-          <grid row="8" column="6" row-span="5" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="10" column="6" row-span="3" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="100" height="100"/>
+            <preferred-size width="100" height="100"/>
+            <maximum-size width="100" height="100"/>
+          </grid>
         </constraints>
         <properties>
           <text value="."/>
         </properties>
+      </component>
+      <component id="8168b" class="javax.swing.JComboBox" binding="cursoComboBox" default-binding="true">
+        <constraints>
+          <grid row="8" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
       </component>
     </children>
   </grid>

@@ -3,9 +3,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.sql.*;
 
 public class principal {
@@ -15,9 +13,7 @@ public class principal {
     private JTextField txtDireccion;
     private JTextField txtTelefono;
     private JTextField txtEdad;
-    private JTextField txtCurso;
-    private JTextField txtIngreso;
-    private JTextField TFoto;
+
     private JButton borrarButton;
     private JButton agregarButton;
     private JButton actualizarButton;
@@ -28,9 +24,10 @@ public class principal {
     private JScrollPane tableModel;
     JPanel matricula;
     private JLabel imagenLabel;
+    private JComboBox cursoComboBox;
 
     private Connection connection;
-
+    String foto_path = "";
     public principal() {
 
         // Conexión a la base de datos
@@ -38,6 +35,11 @@ public class principal {
 
         // Configuración de la tabla
         configureTable();
+
+        String[] cursos = {"Base de Datos", "Redes I", "Fundamentos de Programación"};
+        cursoComboBox.addItem(cursos[0]);
+        cursoComboBox.addItem(cursos[1]);
+        cursoComboBox.addItem(cursos[2]);
 
         agregarButton.addActionListener(new ActionListener() {
             @Override
@@ -85,7 +87,7 @@ public class principal {
             // Conexión a la base de datos
             String url = "jdbc:mysql://localhost:3306/matriculacion";
             String user = "root";
-            String password = "f123456";
+            String password = "123456";
             connection = DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -100,7 +102,6 @@ public class principal {
 
             // Crear un modelo de tabla para almacenar los datos
             DefaultTableModel model = new DefaultTableModel();
-            model.addColumn("ID");
             model.addColumn("Cedula");
             model.addColumn("Nombre");
             model.addColumn("Apellido");
@@ -114,7 +115,6 @@ public class principal {
 
             // Llenar el modelo con los datos de la base de datos
             while (resultSet.next()) {
-                int id = resultSet.getInt("id");
                 int cedula = resultSet.getInt("cedula");
                 String nombre = resultSet.getString("nombre");
                 String apellido = resultSet.getString("apellido");
@@ -128,7 +128,7 @@ public class principal {
                 //Foto
                 String foto = resultSet.getString("foto");
 
-                model.addRow(new Object[]{id,cedula,nombre,apellido,direccion,telefono,edad,curso,fecha_matricula,periodo_ciclo,foto});
+                model.addRow(new Object[]{cedula,nombre,apellido,direccion,telefono,edad,curso,fecha_matricula,periodo_ciclo,foto});
             }
 
             // Configurar la tabla con el modelo
@@ -152,11 +152,9 @@ public class principal {
             String direccion = txtDireccion.getText();
             String telefono = txtTelefono.getText();
             int edad = Integer.parseInt(txtEdad.getText());
-            String curso = txtCurso.getText();
-            //Date fecha_matricula =
-            String fecha_matricula = txtIngreso.getText();
+            String curso = (String) cursoComboBox.getSelectedItem();
             //Blob foto =
-            String foto = TFoto.getText();
+            byte[] foto = foto_en_bytes(foto_path);
 
             // Verificar que el curso ingresado sea válido
             if (!cursoValido(curso)) {
@@ -165,8 +163,8 @@ public class principal {
             }
 
             // Insertar datos en la base de datos
-            String insertQuery = "INSERT INTO Estudiantes(cedula,nombre,apellido,direccion,telefono,edad,curso,fecha_matricula,foto)values\n" +
-                    "(?,?,?,?,?,?,?,?,?);";
+            String insertQuery = "INSERT INTO Estudiantes(cedula,nombre,apellido,direccion,telefono,edad,curso,foto)values\n" +
+                    "(?,?,?,?,?,?,?,?);";
             PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
             insertStatement.setInt(1,cedula);
             insertStatement.setString(2, nombre);
@@ -175,8 +173,7 @@ public class principal {
             insertStatement.setString(5, telefono);
             insertStatement.setInt(6,edad);
             insertStatement.setString(7, curso);
-            insertStatement.setString(8, fecha_matricula);
-            insertStatement.setString(9, foto);
+            insertStatement.setBytes(8, foto);
 
 
             insertStatement.executeUpdate();
@@ -191,9 +188,7 @@ public class principal {
             txtDireccion.setText("");
             txtTelefono.setText("");
             txtEdad.setText("");
-            txtCurso.setText("");
-            txtIngreso.setText("");
-            TFoto.setText("");
+
 
             // Mostrar mensaje de éxito
             JOptionPane.showMessageDialog(null, "Datos agregados correctamente", "Correcto", JOptionPane.INFORMATION_MESSAGE);
@@ -207,7 +202,7 @@ public class principal {
     }
     private boolean camposLlenos() {
         return !txtNombre.getText().isEmpty() && !txtApellido.getText().isEmpty() && !txtDireccion.getText().isEmpty()
-                && !txtTelefono.getText().isEmpty() && !txtEdad.getText().isEmpty() && !txtCurso.getText().isEmpty() && !txtIngreso.getText().isEmpty() && !TFoto.getText().isEmpty();
+                && !txtTelefono.getText().isEmpty() && !txtEdad.getText().isEmpty();
     }
 
     private boolean cursoValido(String curso) {
@@ -215,19 +210,19 @@ public class principal {
     }
     private void buscarDatos() {
         try {
-            // Obtener el ID ingresado
-            String idInput = JOptionPane.showInputDialog(this.matricula, "Ingrese el ID del estudiante que desea buscar:", "Buscar por ID", JOptionPane.QUESTION_MESSAGE);
+            // Obtener el cedula ingresado
+            String idInput = JOptionPane.showInputDialog(this.matricula, "Ingrese el Cedula del estudiante que desea buscar:", "Buscar por cedula", JOptionPane.QUESTION_MESSAGE);
 
-            // Verificar si se ingresó un ID
+            // Verificar si se ingresó un cedula
             if (idInput != null && !idInput.isEmpty()) {
-                int id = Integer.parseInt(idInput);
+                int ncedula = Integer.parseInt(idInput);
 
-                // Consultar la existencia del ID en la base de datos
-                if (existeestudiantes(id)) {
-                    // Obtener la información del estudiante por ID
-                    String query = "SELECT * FROM Estudiantes WHERE id=?";
+                // Consultar la existencia del cedula en la base de datos
+                if (existeestudiantes(ncedula)) {
+                    // Obtener la información del estudiante por cedula
+                    String query = "SELECT * FROM Estudiantes WHERE cedula=?";
                     try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                        preparedStatement.setInt(1, id);
+                        preparedStatement.setInt(1, ncedula);
                         try (ResultSet resultSet = preparedStatement.executeQuery()) {
                             // Mostrar la información en los campos de texto
                             if (resultSet.next()) {
@@ -239,7 +234,7 @@ public class principal {
                                 int edad = resultSet.getInt("edad");
                                 String curso = resultSet.getString("curso");
                                 String fecha_matricula = resultSet.getString("fecha_matricula");
-                                String foto = resultSet.getString("foto");
+                                byte[] foto = resultSet.getBytes("foto");
 
                                 // Mostrar la información en los campos de texto
                                 txtCedula.setText(String.valueOf(cedula));
@@ -248,20 +243,21 @@ public class principal {
                                 txtDireccion.setText(direccion);
                                 txtTelefono.setText(telefono);
                                 txtEdad.setText(String.valueOf(edad));
-                                txtCurso.setText(curso);
-                                txtIngreso.setText(fecha_matricula);
-                                TFoto.setText(foto);
+                                cursoComboBox.setSelectedItem(curso);
 
-                                // Mostrar mensaje de éxito
-                                String mensaje = "ID: " + id + "\nCedula: " + cedula + "\nNombre: " + nombre + "\nApellido: " + apellido
-                                        + "\nDireccion: " + direccion + "\nTelefono: " + telefono + "\nEdad: " + edad
-                                        + "\nCurso: " + curso + "\nFecha Matricula: " + fecha_matricula + "\nFoto: " + foto;
-                                JOptionPane.showMessageDialog(this.matricula, mensaje, "Resultado de búsqueda", JOptionPane.INFORMATION_MESSAGE);
+                                ImageIcon imageIcon = new ImageIcon(foto);
+                                Image image = imageIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                                ImageIcon scaledIcon = new ImageIcon(image);
+                                String mensaje = "\nCedula: " + cedula + "\nNombre: " + nombre + "\nApellido: " + apellido
+                                            + "\nDireccion: " + direccion + "\nTelefono: " + telefono + "\nEdad: " + edad
+                                            + "\nCurso: " + curso + "\nFecha Matricula: " + fecha_matricula ;
+                                JOptionPane.showMessageDialog(this.matricula, mensaje, "Resultado de búsqueda", JOptionPane.INFORMATION_MESSAGE, scaledIcon);
+
                             }
                         }
                     }
                 } else {
-                    JOptionPane.showMessageDialog(this.matricula, "El estudiante con ID " + id + " no existe en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this.matricula, "El estudiante con cedula " + ncedula + " no existe en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (SQLException | NumberFormatException ex) {
@@ -271,39 +267,31 @@ public class principal {
 
     private void actualizarDatos() {
         try {
-            // Obtener el ID ingresado
-            String idInput = JOptionPane.showInputDialog(this.matricula, "Ingrese el ID del estudiante que desea actualizar:", "Actualizar por ID", JOptionPane.QUESTION_MESSAGE);
+            // Obtener el cedula ingresado
+                int cedula = Integer.parseInt(txtCedula.getText());
 
-            // Verificar si se ingresó un ID
-            if (idInput != null && !idInput.isEmpty()) {
-                int id = Integer.parseInt(idInput);
-
-                // Consultar la existencia del ID en la base de datos
-                if (existeestudiantes(id)) {
+                // Consultar la existencia del cedula en la base de datos
+                if (existeestudiantes(cedula)) {
                     // Obtener los nuevos valores de los campos de texto
-                    int cedula = Integer.parseInt(txtCedula.getText());
                     String nombre = txtNombre.getText();
                     String apellido = txtApellido.getText();
                     String direccion = txtDireccion.getText();
                     String telefono = txtTelefono.getText();
                     int edad = Integer.parseInt(txtEdad.getText());
-                    String curso = txtCurso.getText();
-                    String fecha_matricula = txtIngreso.getText();
-                    String foto = TFoto.getText();
+                    String curso = (String) cursoComboBox.getSelectedItem();
+                    byte[] foto = foto_en_bytes(foto_path);
 
-                    // Actualizar el estudiante en la base de datos por ID
-                    String query = "UPDATE Estudiantes SET cedula=?, nombre=?, apellido=?, direccion=?, telefono=?, edad=?, curso=?, fecha_matricula=?, foto=? WHERE id=?";
+                    // Actualizar el estudiante en la base de datos por cedula
+                    String query = "UPDATE Estudiantes SET  nombre=?, apellido=?, direccion=?, telefono=?, edad=?, curso=?, foto=? WHERE cedula=?";
                     try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                        preparedStatement.setInt(1, cedula);
-                        preparedStatement.setString(2, nombre);
-                        preparedStatement.setString(3, apellido);
-                        preparedStatement.setString(4, direccion);
-                        preparedStatement.setString(5, telefono);
-                        preparedStatement.setInt(6, edad);
-                        preparedStatement.setString(7, curso);
-                        preparedStatement.setString(8, fecha_matricula);
-                        preparedStatement.setString(9, foto);
-                        preparedStatement.setInt(10, id);
+                        preparedStatement.setInt(8, cedula);
+                        preparedStatement.setString(1, nombre);
+                        preparedStatement.setString(2, apellido);
+                        preparedStatement.setString(3, direccion);
+                        preparedStatement.setString(4, telefono);
+                        preparedStatement.setInt(5, edad);
+                        preparedStatement.setString(6, curso);
+                        preparedStatement.setBytes(7, foto);
 
                         preparedStatement.executeUpdate();
                     }
@@ -315,25 +303,23 @@ public class principal {
                     txtDireccion.setText("");
                     txtTelefono.setText("");
                     txtEdad.setText("");
-                    txtCurso.setText("");
-                    txtIngreso.setText("");
-                    TFoto.setText("");
+
 
                     // Recargar datos en la tabla
                     configureTable();
                 } else {
-                    JOptionPane.showMessageDialog(this.matricula, "El estudiante con ID " + id + " no existe en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this.matricula, "El estudiante con cedula " + cedula + " no existe en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
+
         } catch (SQLException | NumberFormatException ex) {
             ex.printStackTrace();
         }
     }
 
-    private boolean existeestudiantes(int id) throws SQLException {
-        String query = "SELECT COUNT(*) FROM Estudiantes WHERE id=?";
+    private boolean existeestudiantes(int cedula) throws SQLException {
+        String query = "SELECT COUNT(*) FROM Estudiantes WHERE cedula=?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setInt(1, id);
+            preparedStatement.setInt(1, cedula);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 resultSet.next();
                 int count = resultSet.getInt(1);
@@ -344,19 +330,19 @@ public class principal {
 
     private void borrarDatos() {
         try {
-            // Obtener el ID ingresado
-            String idInput = JOptionPane.showInputDialog(this.matricula, "Ingrese el ID del estudiante que desea borrar:", "Borrar por ID", JOptionPane.QUESTION_MESSAGE);
+            // Obtener el cedula ingresado
+            String idInput = JOptionPane.showInputDialog(this.matricula, "Ingrese el cedula del estudiante que desea borrar:", "Borrar por cedula", JOptionPane.QUESTION_MESSAGE);
 
-            // Verificar si se ingresó un ID
+            // Verificar si se ingresó un cedula
             if (idInput != null && !idInput.isEmpty()) {
-                int id = Integer.parseInt(idInput);
+                int cedula = Integer.parseInt(idInput);
 
-                // Consultar la existencia del ID en la base de datos
-                if (existeestudiantes(id)) {
-                    // Borrar el estudiante de la base de datos por ID
-                    String query = "DELETE FROM Estudiantes WHERE id=?";
+                // Consultar la existencia del cedula en la base de datos
+                if (existeestudiantes(cedula)) {
+                    // Borrar el estudiante de la base de datos por cedula
+                    String query = "DELETE FROM Estudiantes WHERE cedula=?";
                     try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                        preparedStatement.setInt(1, id);
+                        preparedStatement.setInt(1, cedula);
                         preparedStatement.executeUpdate();
                     }
 
@@ -367,17 +353,14 @@ public class principal {
                     txtDireccion.setText("");
                     txtTelefono.setText("");
                     txtEdad.setText("");
-                    txtCurso.setText("");
-                    txtIngreso.setText("");
-                    TFoto.setText("");
 
                     // Recargar datos en la tabla
                     configureTable();
 
                     // Mostrar mensaje de éxito
-                    JOptionPane.showMessageDialog(this.matricula, "Estudiante con ID " + id + " borrado correctamente.", "Borrado exitoso", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this.matricula, "Estudiante con cedula " + cedula + " borrado correctamente.", "Borrado exitoso", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(this.matricula, "El estudiante con ID " + id + " no existe en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this.matricula, "El estudiante con cedula " + cedula + " no existe en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (SQLException | NumberFormatException ex) {
@@ -394,14 +377,14 @@ public class principal {
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             String imagePath = selectedFile.getAbsolutePath();
-            TFoto.setText(imagePath);
+            foto_path = imagePath;
             // Limpiar la visualización de la imagen al seleccionar una nueva
             imagenLabel.setIcon(null);
         }
     }
     // Método para visualizar la imagen seleccionada
     private void visualizarFoto() {
-        String imagePath = TFoto.getText();
+        String imagePath = foto_path;
         if (!imagePath.isEmpty()) {
             try {
                 ImageIcon imageIcon = new ImageIcon(imagePath);
@@ -417,4 +400,26 @@ public class principal {
             JOptionPane.showMessageDialog(null, "Seleccione una imagen primero", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private byte[] foto_en_bytes(String path){
+        File file = new File(path);
+        byte[] resultado = new byte[0];
+        try (FileInputStream fis = new FileInputStream(file);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+
+            resultado = bos.toByteArray();
+
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        }
+
+        return resultado;
+    }
 }
+
